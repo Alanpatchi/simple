@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning JavaScript</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+<body>
+	
+	<p id="text"> Some Text </p>
+	
+	<button onclick="alert button" id="justAlertButton">Just alert Button</button>
+	
+	<button id="alertAndTextChanger">Alert and Text Changer</button>
+	
+	<button id="textAppender">Text Appender</button>
+	
+	<div id="textToAppend"> textAppender gonna do work here.....</div>
+	
+	<button id="HTMLCreator">HTML Creator</button>
+	
+	<div id="HTMLContent">
+		<select>
+				<option>Select an option...</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option
+				>
+			</select>
+	</div>
+	 
+	<script type="text/javascript">
+	
+		document.getElementById("text").innerHTML = "Some changed Text";
+		
+		document.getElementById("justAlertButton").innerHTML = "Just Alert Changed Button";
+		
+		document.getElementById("alertAndTextChanger").onclick = function(){
+			alert("alert button 2");	
+			document.getElementById("someText").innerHTML = "Some changed Text 2";
+		}
+		
+		document.getElementById("textAppender").onclick = function(){
+			document.getElementById("textToAppend").innerHTML = document.getElementById("textToAppend").
+			innerHTML
+			+ " it works "
+		}
+		
+		document.getElementById("HTMLCreator").onclick = function(){
+			document.getElementById("HTMLContent").innerHTML = 
+				"<ol>\
+			<li>neyveli</li>\
+			<li>bangalore</li>\
+			<li>trichy</li>\
+		</ol>";
+			  
+		} 
+	
+	</script>
+
+</body>
+</html>

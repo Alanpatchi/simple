@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script> 
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+        <!-- <script src="jquery-customselect-1.9.1.min.js"> --></script>
+        <!-- <link rel="stylesheet" href="jquery-customselect-1.9.1.css" type="text/css" media="screen" title="no title" charset="utf-8"/> -->
+        <script src="http://52.88.123.69:8080/medAlliance/rest/webportal/application/js"></script>
+        <script src="http://listjs.com/no-cdn/list.js"></script>
+        <script src="http://listjs.com/no-cdn/list.fuzzysearch.js"></script>
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">        
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="http://52.88.123.69:8080/medAlliance/rest/webportal/application/css" type="text/css" media="screen" title="no title" charset="utf-8"/>
+        <link rel="icon" href="http://52.88.123.69:8080/medAlliance/rest/webportal/icon">
+        <style type="text/css">
+/*         .ui-dialog{ */
+/*   			  overflow: initial !important; */
+/* 		} */
+		.ui-dialog .selectboxit-options {
+ 		 position: static;
+		}
+/* 		.ui-dialog .ui-dialog-content { overflow:visible !important;} .ui-dialog { overflow: inherit !important; } */
+        </style>
+        <script type="text/javascript">
+        var mainJS = {
+        		ubcList: {},
+        		displayOverlay: function (text) {
+                    $("<table id='overlay'><tbody><tr><td>" + text + "</td></tr></tbody></table>").css({
+                        "position": "fixed",
+                        "top": "0px",
+                        "left": "0px",
+                        "width": "100%",
+                        "height": "100%",
+                        "background-color": "rgba(0,0,0,.5)",
+                        "z-index": "10000",
+                        "vertical-align": "middle",
+                        "text-align": "center",
+                        "color": "#fff",
+                        "font-size": "40px",
+                        "font-weight": "bold",
+                        "cursor": "wait"
+                    }).appendTo("body");
+                },
+                removeOverlay: function () {
+                    $("#overlay").remove();
+                },
+        		sendAjaxRequest: function(url, data, type, complete) {
+                    mainJS.displayOverlay('Loading');
+                    $.ajax({
+                        headers: { 
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json' 
+                            },
+                        url: url,
+                        type: type,
+                        data: JSON.stringify(data),
+                        dataType: "JSON",
+                        complete: function(response) {
+                            mainJS.removeOverlay();                            
+                            if(response['status'] == 200) {
+                                complete(JSON.parse(response['responseText']));
+                            } else {
+                                alert('Error Occured');
+                            }
+                        }
+                    }); 
+                },
+        		getQueryVariable: function(variable) {
+                        var query = window.location.search.substring(1);
+                        var vars = query.split("&");
+                        for (var i=0;i<vars.length;i++) {
+                            var pair = vars[i].split("=");
+                            if (pair[0].trim().toLowerCase() === variable.trim().toLowerCase()) {
+                              return pair[1];
+                            }
+                        } 
+                        alert('Query Variable ' + variable + ' not found');
+        		},
+                matchUdbList: function(responseJson) {
+                	mainJS.displayOverlay('Creating dropdown');
+                    mainJS.ubcList = {};
+                    $.each(responseJson['udb'], function(key, value){
+                        mainJS.ubcList[value['id']] = value['name']
+                    });
+                    $('#myselect').append(mainJS.getOptions());
+                    $("#myselect").chosen({
+            			search_contains: true,
+            			width : "200px"
+            		});
+                    $('.chosen-results').css({
+            			"font-size" : "12px"
+            		});
+            		$('.chosen-single').css({
+            			"font-size" : "12px"
+            		});            		
+                    console.log();
+                    mainJS.removeOverlay();
+                },
+                getOptions: function() {
+                    var output = '<option value="">None</option>';
+                    $.each(mainJS.ubcList, function(key, value){
+                        output+= '<option value='+key+'>'+value+'</option>';
+                    });
+                    return output;
+                }
+        };
+        </script>
+        <title>Development</title>
+    </head>
+    <body>
+	<div id="main">
+		<button id="showDialogButton">Bring Pop Up</button>
+	</div>
+	<div id="mydialog" title="MyDialog-BUGGED" class="ui-helper-hidden">
+    	<p>Choose the UDB Product from the list</p>
+    	<select id="myselect" class="udb-select">
+        	
+    	</select>
+    </div>
+
+	<script>
+		$(document).ready(function() {
+			mainJS.sendAjaxRequest('/medAlliance/rest/webportal/udbProducts', {
+				"username" : mainJS.getQueryVariable('username'),
+				"authKey" : mainJS.getQueryVariable('authkey')
+			}, 'POST', mainJS.matchUdbList);
+		});
+		$("#showDialogButton").click(function() {
+			$("#mydialog").dialog("open");
+		});
+		
+		$("#mydialog").dialog({
+			width : 'auto',
+			height : 'auto',
+			autoOpen : false,
+			modal : true
+		});
+		$("body").on("chosen:showing_dropdown", "#myselect", function () {
+		    $(".ui-dialog .ui-dialog-content").css("overflow","visible");
+		    $(".ui-dialog").css("overflow","inherit");
+		});
+	</script>
+    </body>
+     </html>
+        

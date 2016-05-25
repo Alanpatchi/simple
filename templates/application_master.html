@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>MedAlliance Admin</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet"
+	href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script
+	src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="http://1000hz.github.io/bootstrap-validator/dist/validator.min.js"></script>
+<script src="http://52.88.123.69:8080/medAlliance/rest/webportal/application/js"></script>
+  <link rel="stylesheet" href="http://52.88.123.69:8080/medAlliance/rest/webportal/application/css" type="text/css" media="screen" title="no title" charset="utf-8"/>
+  <link rel="icon" href="http://52.88.123.69:8080/medAlliance/rest/webportal/icon">
+</head>
+<script type="text/javascript">
+
+	var mainJS = {
+		csDiv : null,
+		crDiv : null,
+		mrtsDiv : null,
+		mstfDiv : null,
+		cuDiv : null,
+		supplier: null,
+        retailer: null,
+        format: null,
+        displayOverlay : function(text) {
+			$(
+					"<table id='overlay'><tbody><tr><td>" + text
+							+ "</td></tr></tbody></table>").css({
+				"position" : "fixed",
+				"top" : "0px",
+				"left" : "0px",
+				"width" : "100%",
+				"height" : "100%",
+				"background-color" : "rgba(0,0,0,.5)",
+				"z-index" : "10000",
+				"vertical-align" : "middle",
+				"text-align" : "center",
+				"color" : "#fff",
+				"font-size" : "40px",
+				"font-weight" : "bold",
+				"cursor" : "wait"
+			}).appendTo("body");
+		},
+		removeOverlay : function() {
+			$("#overlay").remove();
+		},
+		sendAjaxRequest: function(url, data, type, complete, async) {
+            mainJS.displayOverlay('Loading');
+            $.ajax({
+                headers: { 
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json' 
+                    },
+                url: url,
+                type: type,
+                async: async,
+                data: JSON.stringify(data),
+                dataType: "JSON",                        
+                complete: function(response) {
+                     mainJS.removeOverlay();
+                    if(response['status'] == 200) {
+                        respJson = JSON.parse(response['responseText']);
+                        if(respJson.status === 'success')
+                            complete(JSON.parse(response['responseText']));
+                        else
+                            alert(respJson.status);
+                    } else {
+                        alert('Error Occured');
+                    }                            
+                }
+            }); 
+        },
+        init: function() {
+            // mainJS.getSupplierList();
+            // mainJS.getRetailerList();
+            mainJS.getFormatList();
+            // mainJS.initCallback();                    
+        },       
+        getSupplierList: function() {
+            mainJS.sendAjaxRequest('/medAlliance/rest/webportal/getSupplierList', {"username" : mainJS.getQueryVariable('username'), "authKey" : mainJS.getQueryVariable('authkey')}, 'POST', mainJS.supplierCallback, false);
+        },
+        getRetailerList: function() {
+            mainJS.sendAjaxRequest('/medAlliance/rest/webportal/getRetailerList', {"username" : mainJS.getQueryVariable('username'), "authKey" : mainJS.getQueryVariable('authkey')}, 'POST', mainJS.retailerCallback, false);  
+        },
+        getFormatList: function() {
+            mainJS.sendAjaxRequest('/medAlliance/rest/webportal/getSupplierFormats', {"username" : mainJS.getQueryVariable('username'), "authKey" : mainJS.getQueryVariable('authkey')}, 'POST', function(responseJson){mainJS.format = responseJson.formats}, true);    
+        }, 
+        supplierCallback: function(responseJson) {
+            var html = '<option value="">None</option>';
+            $.each(responseJson.returnSuppliers, function(key, value){
+                html += '<option value="'+value.id+'">'+value.name+ '-- '+ value.emailId +'</option>'
+            });
+            $('#fsupplier').html(html);
+            $('#rsupplier').html(html);
+            $('#fsupplier').trigger('chosen:updated');
+            $('#rsupplier').trigger('chosen:updated');
+            $('#fsupplier').chosen({width: "500px"});
+            $('#rsupplier').chosen({width: "500px"});
+        },
+        retailerCallback: function(responseJson) {
+            var retailer_html = '<option value="">None</option>';
+            $.each(responseJson.returnRetailers, function(key, value){
+                retailer_html += '<option value="'+value.id+'" >'+ value.retailerIdSet.emailId +' -- '+ value.retailerIdSet.tinNo +' -- '+ value.retailerIdSet.imie +' -- '+ value.retailerIdSet.internetCardId +'</option>'
+            });
+            $('#retailer').html(retailer_html);
+            $('#retailer').chosen({width: "500px"});
+            $('#retailer').trigger('chosen:updated');
+        },
+        initCallback: function(response) {                    
+            if (mainJS.format) {
+                var format_html = '<option value="">None</option>';
+                $.each(mainJS.format, function(key, value){
+                    format_html += '<option value="'+value+'">'+value+'</option>'
+                });
+                $('#format').html(format_html);                        
+                $('#format').chosen({width: "500px"});
+                $('#format').trigger('chosen:updated');      
+            }                    
+            $('.chosen-results').css({"font-size": "12px"});
+            $('.chosen-single').css({"font-size": "12px"});
+            
+        },
+        getQueryVariable: function(variable) {
+            var query = window.location.search.substring(1);
+            var vars = query.split("&");
+            for (var i=0;i<vars.length;i++) {
+                var pair = vars[i].split("=");
+                if (pair[0].trim().toLowerCase() === variable.trim().toLowerCase()) {
+                  return pair[1];
+                }
+            } 
+            alert('Query Variable ' + variable + ' not found');
+        },		
+        logoutApplication: function() {
+            mainJS.sendAjaxRequest('/medAlliance/rest/webportal/account/logout', {"username" : mainJS.getQueryVariable('username'), "authKey" : mainJS.getQueryVariable('authkey')}, 'POST', function(responseJson){window.location ='http://'+responseJson['nextpage'];});
+        },
+        showCS: function() {                   
+        },
+        showCU: function() {                  
+        },
+        showCR: function() {
+        },
+        showSF: function() {
+            mainJS.getSupplierList();
+            mainJS.initCallback();                   
+        },
+        showRS: function() {
+            mainJS.getSupplierList();
+            mainJS.getRetailerList();
+            mainJS.initCallback();
+        },
+        submitCS: function() {
+            if (! confirm('Are you sure to submit'))
+                return;
+            var url = '/medAlliance/rest/webportal/account/supplier/createSuplier';
+            var data = {
+                'authKeyCheck': {"username" : mainJS.getQueryVariable('username'), "authKey" : mainJS.getQueryVariable('authkey')},
+                'name': $('#supplier_name').val(),
+                'tinNo': $('#supplier_tin').val(),
+                'emailId': $('#supplier_email').val()
+            };
+            mainJS.sendAjaxRequest(url, data, 'POST', function(responseJson) {alert('Success');}, true);
+        },
+        submitCR: function() {
+            if (! confirm('Are you sure to submit'))
+                return;
+            var url = '/medAlliance/rest/webportal/account/retailer/createRetailer';
+            var data = {
+                'authKeyCheck': {
+                    "username" : mainJS.getQueryVariable('username'),
+                    "authKey" : mainJS.getQueryVariable('authkey')
+                },
+                'retailerIdSet': { 
+                    'imie': $('#retailer_imie').val(),
+                    'tinNo': $('#retailer_tin').val(),
+                    'emailId': $('#retailer_email').val(),
+                    'internetCardId': $('#retailer_icardid').val()
+                },
+                "retailerExtras" : {
+                    "name" : $('#retailer_name').val()
+                }
+            };
+            mainJS.sendAjaxRequest(url, data, 'POST', function(responseJson) {alert('Success');}, true);  
+        },
+        submitSF: function() {
+            if (! confirm('Are you sure to submit'))
+                return;
+            var url = '/medAlliance/rest/webportal/createSupplierToFormat';
+            var data = {
+                'authKeyCheck': {
+                    "username" : mainJS.getQueryVariable('username'),
+                    "authKey" : mainJS.getQueryVariable('authkey')
+                },                        
+                'format': $('#format').val(),
+                'supCode': $('#supcode').val(),
+                'supplierId': $('#fsupplier').val(),                        
+            };
+            mainJS.sendAjaxRequest(url, data, 'POST', function(responseJson) {alert('Success');}, true);  
+        },
+        submitRS: function() {
+            if (! confirm('Are you sure to submit'))
+                return;
+            var url = '/medAlliance/rest/webportal/createRetailerToSupplier';
+            var data = {
+                'authKeyCheck': {
+                    "username" : mainJS.getQueryVariable('username'),
+                    "authKey" : mainJS.getQueryVariable('authkey')
+                },                        
+                'retailerId': $('#retailer').val(),
+                'custCode': $('#custcode').val(),
+                'supplierId': $('#rsupplier').val(),                        
+            };
+            mainJS.sendAjaxRequest(url, data, 'POST', function(responseJson) {alert('Success');}, true);    
+        },
+        submitCU: function() {
+            if (! confirm('Are you sure to submit'))
+                return;
+
+            var url = '/medAlliance/rest/webportal/account/newaccountcreate';
+            var data = {
+                'authKeyCheck': {
+                    "username" : mainJS.getQueryVariable('username'),
+                    "authKey" : mainJS.getQueryVariable('authkey')
+                },
+                "username" : $('#username').val(),
+                "password" : $('#password').val(),
+                "accessLevel" : $('#accesslevel').val()
+            };
+            mainJS.sendAjaxRequest(url, data, 'POST', function(responseJson) {alert(responseJson.status);}, true);
+        },
+		csFormValidator : function() {
+			$('#CS_Form').validator().on('submit', function(e) {
+
+				if (e.isDefaultPrevented()) {
+					// handle the invalid form...
+				} else {
+					// everything looks good!				
+					e.preventDefault();
+// 					$('#CS_Form').validator('destroy');
+// 					$('#CS_Form').trigger('reset');
+// 					$('#CS_Form').validator(mainJS.triggerOptions);
+// 					console.log($("#create_supplier").html());
+					mainJS.submitCS();
+					$("#create_supplier").html(mainJS.csDiv);
+					$('#CS_Form').validator(mainJS.triggerOptions);
+					$('#supplier_email').attr({
+						"data-validemail" : "validemail"
+					});
+					$('#supplier_tin').attr({
+						"data-validtin" : "validtin"
+					});
+					mainJS.csFormValidator();
+				}
+			});
+		},
+		crFormValidator : function() {
+			$('#CR_Form').validator().on('submit', function(e) {
+
+				if (e.isDefaultPrevented()) {
+					// handle the invalid form...
+				} else {
+					// everything looks good!
+					e.preventDefault();
+					mainJS.submitCR();
+					$("#create_retailer").html(mainJS.crDiv);
+					$('#CR_Form').validator(mainJS.triggerOptions);
+					$('#retailer_email').attr({
+						"data-validemail" : "validemail"
+					});
+					$('#retailer_tin').attr({
+						"data-validtin" : "validtin"
+					});
+					mainJS.crFormValidator();
+				}
+			});
+		},
+		mrtsFormValidator : function() {
+			$('#MRTS_Form').validator().on('submit', function(e) {
+
+				if (e.isDefaultPrevented()) {
+					// handle the invalid form...
+				} else {
+					// everything looks good!
+					e.preventDefault();
+					var temp = $('#custcode').val();
+					var retailer = $('#retailer').val();
+					var rsupplier = $('#rsupplier').val();
+					if(retailer && rsupplier) {
+// 						alert('success   '+retailer+rsupplier);
+						mainJS.submitRS();
+					}
+					$("#retailer_to_supplier").html(mainJS.mrtsDiv);
+					$('#MRTS_Form').validator(mainJS.triggerOptions);
+					mainJS.showRS();
+				    mainJS.mrtsFormValidator();	
+				    if(!(retailer && rsupplier)){				    	
+				    	$('#custcode').val(temp);
+				    	$('#retailer').val(retailer);
+				    	$('#rsupplier').val(rsupplier);
+// 				    	$("#retailer option[value='something2']").prop('selected', true);
+// 				    	$('#retailer').trigger('change',[{selected:retailer}]);
+				    	$('#retailer').trigger('chosen:updated');
+				    	$('#rsupplier').trigger('chosen:updated');
+// 				    	alert('failure  ' +temp +'     retailer:'+retailer+'     rsupplier:'+rsupplier);
+				    }				    				    
+// 				    $('#rsupplier').on('change', function(event, params){
+// 						$("#rsupplierinput").val(params['selected']);
+// 						$("#rsupplierinput").focus();
+// 					});													
+				}
+			});
+		},
+		mstfFormValidator : function() {
+			$('#MSTF_Form').validator().on('submit', function(e) {
+				if (e.isDefaultPrevented()) {
+					// handle the invalid form...
+				} else {
+					// everything looks good!
+					e.preventDefault();
+					alert('MSTF_Form not prevent');
+					var temp = $('#supcode').val();
+					var fsupplier = $('#fsupplier').val();
+					var format = $('#format').val();
+					if(fsupplier && format){
+						mainJS.submitSF();
+					}						
+					$("#supplier_to_format").html(mainJS.mstfDiv);
+					$('#MSTF_Form').validator(mainJS.triggerOptions);
+					mainJS.showSF();
+				    mainJS.mstfFormValidator();	
+				    if(!(fsupplier && format)){				    	
+				    	$('#supcode').val(temp);
+				    	$('#fsupplier').val(fsupplier);
+				    	$('#format').val(format);
+// 				    	$("#fsupplier option[value='something2']").prop('selected', true);
+// 				    	$('#fsupplier').trigger('change',[{selected:fsupplier}]);
+				    	$('#fsupplier').trigger('chosen:updated');
+				    	$('#format').trigger('chosen:updated');
+				    }				    				    
+// 				    $('#format').on('change', function(event, params){
+// 						$("#formatinput").val(params['selected']);
+// 						$("#formatinput").focus();
+// 					});													
+				}
+			});
+		},
+		cuFormValidator : function() {
+			$('#CU_Form').validator().on('submit', function(e) {
+
+				if (e.isDefaultPrevented()) {
+					// handle the invalid form...
+				} else {
+					// everything looks good!
+					e.preventDefault();
+					mainJS.submitCU();
+					$("#create_user").html(mainJS.cuDiv);					
+					$('#CU_Form').validator(mainJS.triggerOptions);
+					mainJS.cuFormValidator();
+				}
+			});
+		},
+		triggerOptions : {
+			custom : {
+				'validemail' : function($el) {
+					if (jQuery.isEmptyObject($el.val()))
+						return true;
+					else
+						return mainJS.isValidEmailAddress($el.val());
+				},
+				'validtin' : function($el) {
+					if (jQuery.isEmptyObject($el.val()))
+						return true;
+					else
+						return mainJS.isTinNo($el.val());
+				},
+				// 			        'validimei' : function($el) {
+				// 			        	if (jQuery.isEmptyObject($el.val()))
+				// 			        		return true;
+				// 			        	else
+				// 			        		return mainJS.isIMEINo($el.val());
+				// 			        },
+				'validaccess' : function($el) {
+					if (jQuery.isEmptyObject($el.val()))
+						return true;
+					else
+						return mainJS.isValidAccessLevel($el.val());
+				}
+			},
+			errors : {
+				validtin : "Tin Number should have only digits and that too exactly 11 of them",
+				validemail : "Type valid email address",
+				validimei : "IMEI Number should have only digits and that too exactly 15 of them",
+				validaccess : "Only 1 or 2 is allowed"
+			}
+		},
+		isValidEmailAddress : function(emailAddress) {
+			var pattern = /^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([ \t]*\r\n)?[ \t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([ \t]*\r\n)?[ \t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
+			return pattern.test(emailAddress);
+		},
+		isTinNo : function(tinNo) {
+			var pattern = /^[0-9]{11}$/;
+			return pattern.test(tinNo);
+		},
+		// 			isIMEINo : function (imeiNo) {
+		// 				var pattern = /^[0-9]{15}$/;
+		// 				return pattern.test(imeiNo);
+		// 			},
+		isValidAccessLevel : function(accessLevel) {
+			var pattern = /^[1-2]{1}$/;
+			return pattern.test(accessLevel);
+		},
+		customValidator : function() {
+			mainJS.csDiv = $("#create_supplier").html();
+			mainJS.crDiv = $("#create_retailer").html();
+			mainJS.mrtsDiv = $("#retailer_to_supplier").html();
+			mainJS.mstfDiv = $("#supplier_to_format").html();
+			mainJS.cuDiv = $("#create_user").html();
+			$('form').validator(mainJS.triggerOptions);
+			$('#supplier_email').attr({
+				"data-validemail" : "validemail"
+			});
+			$('#supplier_tin').attr({
+				"data-validtin" : "validtin"
+			});
+			$('#retailer_email').attr({
+				"data-validemail" : "validemail"
+			});
+			$('#retailer_tin').attr({
+				"data-validtin" : "validtin"
+			});
+// 							$('#retailer_imie').attr({
+// 								"data-validimei" :"validimei"
+// 							});
+			$('#accesslevel').attr({
+				"data-validaccess" : "validaccess"
+			});
+			$("#retailer_to_supplier").removeClass("active in");
+			$("#create_user").removeClass("active in");
+			$("#supplier_to_format").removeClass("active in");
+			$("#create_supplier").removeClass("active in");
+			// 				$('form').validator();
+			mainJS.csFormValidator();
+			mainJS.crFormValidator();
+			mainJS.mrtsFormValidator();
+			mainJS.mstfFormValidator();
+			mainJS.cuFormValidator();
+// 			$('#format').on('change', function(event, params){
+// 				$("#formatinput").val(params['selected']);
+// 				$("#formatinput").focus();
+// 			});			
+		}
+
+	};
+</script>
+<body>
+	<button style="margin:0px;font-family:Helvetica Neue,Helvetica,Arial,sans-serif; padding-left: 10px; float: right; padding-right: 10px;margin-top:28px;font-size:14px;margin-right:50px; background-color: #337ab7;border-radius:5px;border:0px;color:white;" onclick="mainJS.logoutApplication();return false;">logout</button>
+	<div class="container" style="width: 810px;">
+		<h2>
+			<img src="http://52.88.123.69:8080/medAlliance/rest/webportal/logo" alt="W3Schools.com"
+				style="height: 210px;position: relative;margin-top: -50px;margin-left: 145px;">
+		</h2>
+		<ul class="nav nav-pills" style="margin-top: -50px;">
+			<li class="active"><a data-toggle="pill" href="#create_retailer" onclick="mainJS.showCR();">Create
+					Retailer</a></li>
+			<li><a data-toggle="pill" href="#retailer_to_supplier" onclick="mainJS.showRS();">Map
+					Retailers to Supplier</a></li>
+			<li ><a data-toggle="pill" href="#create_supplier"
+				id="suppliertab" onclick="mainJS.showCS();">Create Supplier</a></li>
+			<li><a data-toggle="pill" href="#supplier_to_format" onclick="mainJS.showSF();">Map
+					Suppliers to Format</a></li>
+			<li><a data-toggle="pill" href="#create_user" onclick="mainJS.showCU();">Create User</a></li>
+		</ul>
+
+		<div class="tab-content" style="width: 500px;margin: 40px auto;">
+			<div id="retailer_to_supplier" class="tab-pane fade active in">
+				<h3></h3>
+				<!-- 				<div class="container"> -->
+				<form id="MRTS_Form" role="form">
+					<div class="form-group">
+						<label for="rsupplier">Select Supplier:</label><br> <select
+							id="rsupplier" class="custom-select" style="width: 100%;">
+							<option value="">None</option>
+						</select>
+					</div>
+					<div class="form-group has-feedback">
+						<label for="custcode" class="control-label">Retailer ID Code:
+						</label>
+						<div class="input-group">
+							<span class="input-group-addon"> ➢ </span> <input type="text"
+								class="form-control" id="custcode"
+								placeholder="Enter Retailer Code" required>
+						</div>
+						<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+						<div class="help-block with-errors"></div>
+					</div>
+					<div class="form-group">
+						<label for="retailer">Select Retailer:</label><br> <select
+							id="retailer" class="custom-select" style="width: 100%;">
+							<option value="">None</option>
+						</select>
+					</div>
+					<div class="form-group">
+						<button type="submit" class="btn btn-primary">Map Retailer to Supplier</button>
+					</div>
+				</form>
+				<!-- 				</div> -->
+			</div>
+			<div id="create_supplier" class="tab-pane fade active in">
+				<h3></h3> 
+<!-- 				<div class="container"> -->
+					<!-- 					<form role="form" data-toggle="validator"> -->
+					<form id="CS_Form" role="form">
+						<div class="form-group has-feedback">
+							<label for="supplier_name" class="control-label">Supplier Name: </label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="supplier_name"
+									placeholder="Enter Supplier Name" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+
+						<div class="form-group has-feedback">
+							<label for="supplier_email" class="control-label">Supplier emailId:
+							</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="supplier_email"
+									placeholder="Enter Supplier emailId" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+
+						<div class="form-group has-feedback">
+							<label for="supplier_tin" class="control-label">Supplier Tin Number:</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="supplier_tin"
+									placeholder="Enter Supplier Tin Number" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<!-- 						<div class="checkbox"> -->
+						<!-- 							<label><input type="checkbox"> Remember me</label> -->
+						<!-- 						</div> -->
+						<div class="form-group">
+							<button type="submit" class="btn btn-primary">Create Supplier</button>
+						</div>
+					</form>
+<!-- 				</div> -->
+			</div>
+			<div id="create_retailer" class="tab-pane fade active in">
+				<h3></h3>
+<!-- 				<div class="container"> -->
+					<form id="CR_Form" role="form">
+						<div class="form-group has-feedback">
+							<label for="retailer_name" class="control-label">Retailer Name: </label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="retailer_name"
+									placeholder="Enter Retailer Name" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group has-feedback">
+							<label for="retailer_email" class="control-label">Retailer emailId:
+							</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="retailer_email"
+									placeholder="Enter Retailer emailId" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group has-feedback">
+							<label for="retailer_tin" class="control-label">Retailer Tin Number:</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="retailer_tin"
+									placeholder="Enter Retailer Tin Number" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group has-feedback">
+							<label for="retailer_imie" class="control-label">Internet
+								CardId Number:</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="retailer_imie"
+									placeholder="Enter Retailer Internet Card Id Number">
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group has-feedback">
+							<label for=retailer_icardid class="control-label">IMEI
+								No:</label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="retailer_icardid"
+									placeholder="Enter Retailer IMEI Number">
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group">
+							<button type="submit" class="btn btn-primary">Create Retailer</button>
+						</div>
+					</form>
+<!-- 				</div> -->
+				<!-- 				<div class="dropdown"> -->
+				<!-- 					<button class="btn btn-primary dropdown-toggle" type="button" -->
+				<!-- 						data-toggle="dropdown"> -->
+				<!-- 						Dropdown Example <span class="caret"></span> -->
+				<!-- 					</button> -->
+				<!-- 					<ul class="dropdown-menu"> -->
+				<!-- 						<li><a href="#">HTML</a></li> -->
+				<!-- 						<li><a href="#">CSS</a></li> -->
+				<!-- 						<li><a href="#">JavaScript</a></li> -->
+				<!-- 					</ul> -->
+				<!-- 				</div> -->
+			</div>
+			<div id="supplier_to_format" class="tab-pane fade active in">
+				<h3></h3> 
+<!-- 				<div class="container"> -->
+					<form id="MSTF_Form" role="form">
+						<div class="form-group">
+						<label for="format">Select Format:</label><br>
+						<select
+							id="format" class="custom-select" style="width: 100%;">
+							<option value="">None</option>
+						</select>
+					    </div>
+<!-- 					    <div class="form-group has-feedback"> -->
+<!-- 							<label for="supcode" class="control-label">Supplier ID Code: </label> -->
+<!-- 							<div class="input-group"> -->
+<!-- 								<span class="input-group-addon"> ➢ </span> <input type="text" -->
+<!-- 									class="form-control" id="formatinput" -->
+<!-- 									placeholder="Enter Supplier Code" required> -->
+<!-- 							</div> -->
+<!-- 							<span class="glyphicon form-control-feedback" aria-hidden="true"></span> -->
+<!-- 							<div class="help-block with-errors"></div> -->
+<!-- 						</div> -->
+						<div class="form-group has-feedback">
+							<label for="supcode" class="control-label">Supplier ID Code: </label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="supcode"
+									placeholder="Enter Supplier Code" required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group">
+						<label for="fsupplier">Select Supplier:</label><br> <select
+							id="fsupplier" class="custom-select" style="width: 100%;">
+							<option value="">None</option>
+						</select>
+					    </div>
+						<div class="form-group">
+							<button type="submit" class="btn btn-primary">Map Supplier to Format</button>
+						</div>
+					</form>
+<!-- 				</div> -->
+			</div>
+			
+			<div id="create_user" class="tab-pane fade active in">
+				<h3></h3>
+<!-- 				<div class="container"> -->
+					<form id="CU_Form" role="form">
+						<div class="form-group has-feedback">
+							<label for="accesslevel" class="control-label">User Access Level	: </label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="accesslevel" placeholder="Enter Access Level"
+									required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group has-feedback">
+							<label for="username" class="control-label">User Name: </label>
+							<div class="input-group">
+								<span class="input-group-addon"> ➢ </span> <input type="text"
+									class="form-control" id="username" placeholder="Enter USERNAME"
+									required>
+							</div>
+							<span class="glyphicon form-control-feedback" aria-hidden="true"></span>
+							<div class="help-block with-errors"></div>
+						</div>
+						<div class="form-group">
+							<label for="password" class="control-label">User Password</label>
+							<div class="form-inline row">
+								<div class="form-group col-sm-6">
+									<div class="input-group">
+										<span class="input-group-addon"> ➢ </span> <input type="text"
+											data-minlength="6" class="form-control" id="password"
+											placeholder="Password" required>
+									</div>
+									<span class="glyphicon form-control-feedback"
+										aria-hidden="true"></span>
+									<div class="help-block">Minimum of 6 characters</div>
+								</div>
+								<div class="form-group col-sm-6">
+									<div class="input-group">
+										<span class="input-group-addon"> ➢ </span> <input type="text"
+											class="form-control" id="passwordConfirm"
+											data-match="#password"
+											data-match-error="Whoops, these don't match"
+											placeholder="Confirm" required>
+									</div>
+									<span class="glyphicon form-control-feedback"
+										aria-hidden="true"></span>
+									<div class="help-block with-errors"></div>
+								</div>
+							</div>
+						</div>
+						<div class="form-group">
+							<button type="submit" class="btn btn-primary">Create User</button>
+						</div>
+					</form>
+<!-- 				</div> -->
+			</div>
+		</div>
+	</div>
+	<!-- 	<button onclick="mainJS.test();">test</button> -->
+<!-- 	<button onclick="mainJS.test1();">test1</button> -->
+	<script type="text/javascript">
+	$(document).ready(function() {
+		mainJS.displayOverlay();
+		mainJS.customValidator();
+		mainJS.init();
+        mainJS.initCallback();
+// 		$('#rsupplier').chosen({width: "500px"});
+// 		$('#retailer').chosen({width: "500px"});
+// 		$('#fsupplier').chosen({width: "500px"});
+// 		$('#format').chosen({width: "500px"});
+		$('.chosen-results').css({"font-size": "12px"});
+	    $('.chosen-single').css({"font-size": "12px"});
+		mainJS.removeOverlay();
+	});
+	
+	</script>
+
+</body>
+</html>

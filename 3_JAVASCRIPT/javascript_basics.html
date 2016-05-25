@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning JavaScript</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+
+<body>
+	<input type="text" id="myInput" placeholder="input here">
+	<br>
+	<button id="takeInputAndDisplay">take input and display below</button>
+	<div id="setValue"></div>
+	
+	<script type="text/javascript">
+			var value = document.getElementById("myInput").value;
+			
+			var array = new Array();
+			 array[0] = " first array first element";
+			 array[1] = " first array second element";
+			 
+			 secondArray = ["2nd array 1st element" , "2nd array 2nd element"];
+			 
+			 array.push("1st array 3rd element");
+			 
+			 secondArray.push("2nd array 3rd element");
+			 
+			 
+
+			 
+			 console.log(array);
+			 
+			
+			document.getElementById("takeInputAndDisplay").onclick = function(){
+				value = document.getElementById("myInput").value;
+				document.getElementById("setValue").innerHTML = value;
+				console.log(secondArray);
+				 secondArray.splice(1,1,"new 2nd array 2nd element");
+				 secondArray.splice(3,0,"new 2nd array 3rd element");
+			}
+	
+	</script>
+	
+	
+	
+</body>
+</html>

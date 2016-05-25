@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning jQuery</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<script type="text/javascript" src="jquery-1.4.1.min.js"></script>
+
+<style>
+	#circle{
+		height: 200px;
+		width: 200px;
+		border-radius: 100px;
+		background-color: green;
+			
+	}
+</style>
+</head>
+<body>
+	<div id="circle"></div>
+
+	<script type="text/javascript">
+	
+		$("#circle").click(function(){
+			$(this).animate({
+				height:"300px",
+				width:"300px",
+				borderRadius:"150px",
+				marginLeft: "50px",
+				marginTop: "50px",
+				backgroundColor: "blue" <!--this is not working?-->
+			},900);
+		})
+	
+	</script>
+
+</body>
+     
+ </html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning JavaScript</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+</head>
+
+<body>
+	What is the weather?
+
+
+	<p id="weatherReport">
+	<ul id="weatherList"> 
+		
+	</ul>
+
+	</p>
+
+
+	<button id="submitUsingForLoop">Submit using For Loop</button>
+     &nbsp;
+	<button id="submitUsingWhileLoop">Submit using While Loop</button>
+	
+	<p> How many fingers are you holding up?</p>
+	
+	<input type="text" id="fingerCount">
+	
+	<button id="Guess">Guess!</button>
+
+
+	<script type="text/javascript">
+		var weatherArray = new Array();
+		weatherArray[0] = "hot";
+		weatherArray[1] = "cool";
+		weatherArray[2] = "rainy";
+
+		document.getElementById("submitUsingForLoop").onclick = function() {
+			for(var i=0; i<weatherArray.length; i++){
+					document.getElementById("weatherList").innerHTML = document.getElementById("weatherList").innerHTML + "<li>"+weatherArray[i]+"</li>";	
+				}
+		}
+		document.getElementById("submitUsingWhileLoop").onclick = function() {
+			var j=0;
+			while(j<weatherArray.length){
+					document.getElementById("weatherList").innerHTML = document.getElementById("weatherList").innerHTML + "<li>"+weatherArray[j]+"</li>";
+					j++;
+			}
+		}	
+			
+		document.getElementById("Guess").onclick = function() {
+			var isEqual = false;
+			var fingerCount = document.getElementById("fingerCount").value;
+			var guesses = 1;
+			while(isEqual == false){
+				if( fingerCount == 1+Math.floor(Math.random()*4)){
+					isEqual=true;
+				}else{
+					guesses++;
+				} 
+			}
+			alert("i got it! you are holding " +fingerCount+" fingers. And it took me "+guesses+" guesses to figure it out.");
+		}
+		
+	</script>
+
+
+</body>
+</html>

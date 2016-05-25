@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Index Page</title>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/pure/0.6.0/pure-min.css" />
+        <script type="text/javascript">
+            var mainJS = {
+                manfacturesList: null,
+                universalMedicineNames: null,
+                initApp: function() {
+                    jQuery('#login').css({'display': 'none'});
+                    jQuery('#logout').fadeIn();
+                    mainJS.sendAjaxRequest('/medAlliance/rest/supplier/getSupplierFormats', {}, 'get', mainJS.displayMan);
+                    mainJS.sendAjaxRequest('/medAlliance/rest/udb/allProducts', {}, 'get', mainJS.displayInitData);       
+                },
+                ajaxBuzy: false,
+                sendAjaxRequest: function(url, data, type, complete) {
+                    if (! mainJS.ajaxBuzy) {
+                        mainJS.ajaxBuzy = true;
+                        jQuery.ajax({
+                            'headers': { 
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json' 
+                            },
+                            'url': url,
+                            'type': type,
+                            'data': JSON.stringify(data),
+                            'dataType': 'json',
+                            'complete': function(response) {
+                                complete(response);
+                            },
+                        });
+                    }
+                    mainJS.ajaxBuzy = false;
+                },
+                displayInitData: function(response){
+                    if (response['status'] === 200) {
+                        responseJson = JSON.parse(response['responseText']);
+                        mainJS.universalMedicineNames = '<option value="">None</option>';
+                        jQuery.each(responseJson, function(key, value){
+                            mainJS.universalMedicineNames = mainJS.universalMedicineNames + '<option value="'+value['_id']+'">'+value['name']+'</option>'
+                        });
+                    }
+                },
+                displayMan: function(response) {
+                    if(response['status'] === 200) {
+                        var responseJson = JSON.parse(response['responseText']);
+                        var manList = responseJson['formats'];    
+                        jQuery('#manufact_list').html('');                   
+                        jQuery.each(manList, function(key, value){
+                            var html = '<option value="'+value+'">Supplier '+value+'</option>';
+                            jQuery('#manufact_list').append(html);
+                        });
+                        jQuery('#app').fadeIn();
+                    }
+                },
+                displayUnmapped: function(value){
+                    mainJS.sendAjaxRequest('/medAlliance/rest/supplier/getunmapped/'+value, {}, 'get', mainJS.displayUnmappedData);
+                },
+                displayUnmappedData: function(response) {
+                    if(response['status'] === 200) {
+                        var responseJson = JSON.parse(response['responseText']);
+                        jQuery('#unmapped_data').html('');
+                        if (mainJS.universalMedicineNames) {                            
+                            jQuery.each(responseJson['unmapped'], function(key, value){
+                                var html_unmap = '<tr><td><label>'+value['formatSpecificProduct']['name']+':</label></td> <td><select  class="tab_data" name="'+value['formatSpecificProductId']+'"  >'+mainJS.universalMedicineNames+'</select></td></tr>';
+                                jQuery('#unmapped_data').append(html_unmap);
+                            });
+                            jQuery('table').fadeIn();
+                        } else {
+                            jQuery('#unmapped_data').html('<h2> Unable To Fetch Data </h2>');
+                        }
+                    }
+                },
+                validateAndStart: function(e){
+                    var data = {"name": jQuery('#name').val(), "password": jQuery('#pass').val()};
+                    mainJS.sendAjaxRequest('/medAlliance/rest/webportal/accountValidate', data, 'post', mainJS.validateCallback);
+                },
+                validateCallback: function(response) {
+                    if (response['status'] === 200) {
+                        responseJson = JSON.parse(response['responseText']);
+                        if (responseJson['status'] === 'success') {
+                            mainJS.initApp();
+                        } else {
+                            alert('Invalid Username or Password');    
+                        }
+                    }
+                },
+                saveData: function(){
+                    var select_data = jQuery('.tab_data');
+                    var data = {};
+                    jQuery.each(select_data, function(key, value){
+                        var select_value = jQuery(value).val();                        
+                        if (select_value) {
+                            data[jQuery(value).attr('name')] = select_value;
+                        }
+                    });
+                    var new_data = {"mappeddata": data};
+                    mainJS.sendAjaxRequest('/medAlliance/rest/webportal/mapFormatSpecificProductToUDBUsingMap', new_data, 'post', mainJS.saveCallback);
+                },
+                saveCallback: function(response) {
+                    if (response['status'] === 200) {
+                        responseJson = JSON.parse(response['responseText']);
+                        if(responseJson['status'] === 'success') {
+                            alert('Successfully Mapped');
+                            mainJS.initApp();
+                        }
+                    }
+                }
+            };            
+        </script>
+    </head>
+    <body>
+        <div>
+        <div id='login'>
+            <form class="pure-form" onsubmit="mainJS.validateAndStart();return false;" method='POST'>
+                <h2>&nbsp;&nbsp; MedAlliance &nbsp;&nbsp;&nbsp;  Sign In </h2>
+                <fieldset>                 
+                    <input id='name' name='name' type="text" placeholder="Username">
+                    <input id='pass' name='password' type="password" placeholder="Password">
+
+                    <button type="submit" class="pure-button pure-button-primary">Sign in</button>
+                </fieldset>
+            </form>
+        </div>
+        <div id='app' style="display:none;width: 90%; float:left;">    
+            <div id="header" >
+                <fieldset>
+                    <legend style="color: #E9322D;">Select Manufactures</legend>
+                    <label>Manufactures:
+                        <select name="manufact" id='manufact_list'>
+                            <option value="man1">man1</option>
+                            <option value="man2">man2</option>
+                            <option value="man3">man3</option>
+                            <option value="man4">man4</option>
+                            <option value="man5">man5</option>                    
+                        </select>
+                    </label>
+                </fieldset>          
+            </div>
+            <div id="content" >
+                <div id="form">
+                    <fieldset>
+                        <legend style="color: blue;" >Select Medicines Map</legend>
+                        <table style="display: none;width: 100%" class="pure-table">
+                            <thead><tr><td>Unmapped Tablet Name</td><td>Mark The UDB Names</td></tr></thead>
+                            <tbody id='unmapped_data'>                        
+                            </tbody>                    
+                        </table>                    
+                    </fieldset>
+                </div>
+            </div>
+            <div id="footer" style="margin-top: 2%; margin-bottom: 1%;" >
+            <button class="pure-button pure-button-primary" onclick="mainJS.saveData();return false;">
+                Save
+            </button>          
+            </div>
+        </div>
+        </div>
+        <div id="logout" style="display:none;float:left;margin-top:1%;">
+            <button onclick="location.reload(); return false;">Log Out</button>
+        </div>
+        <script>
+            jQuery('#manufact_list').on('change', function(){
+                mainJS.displayUnmapped(jQuery('#manufact_list').val());
+            });
+        </script>
+    </body>
+</html>

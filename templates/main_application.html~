@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="http://code.jquery.com/jquery-1.12.0.min.js"></script>
+        <!-- <script src="jquery-customselect-1.9.1.min.js"> --></script>
+        <!-- <link rel="stylesheet" href="jquery-customselect-1.9.1.css" type="text/css" media="screen" title="no title" charset="utf-8"/> -->
+        <script src="http://localhost:8080/medAlliance/rest/webportal/application/js"></script>
+        <script src="http://listjs.com/no-cdn/list.js"></script>
+        <script src="http://listjs.com/no-cdn/list.fuzzysearch.js"></script>
+        <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">        
+        <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+        <link rel="stylesheet" href="http://localhost:8080/medAlliance/rest/webportal/application/css" type="text/css" media="screen" title="no title" charset="utf-8"/>
+        <script type="text/javascript">
+            var response = {"status":"success","supplierId":661859053636423680,"unmapped":[{"formatSpecificProduct":{"name":"KETO SOAP","other":null},"formatSpecificProductId":685903222257532928},{"formatSpecificProduct":{"name":"MELACARE CREAM $","other":null},"formatSpecificProductId":685903222291087360},{"formatSpecificProduct":{"name":"AQUASOFT CREAM","other":null},"formatSpecificProductId":685903222320447488},{"formatSpecificProduct":{"name":"TENORIC 25 MG","other":null},"formatSpecificProductId":685903222345613312},{"formatSpecificProduct":{"name":"TENORIC 50 MG","other":null},"formatSpecificProductId":685903222370779136},{"formatSpecificProduct":{"name":"WARF 1 MG","other":null},"formatSpecificProductId":685903222395944960},{"formatSpecificProduct":{"name":"AEROCORT ROTACAP","other":null},"formatSpecificProductId":685903222421110784},{"formatSpecificProduct":{"name":"BETNESOL ORAL DROPS","other":null},"formatSpecificProductId":685903222442082304},{"formatSpecificProduct":{"name":"VOVERAN D $","other":null},"formatSpecificProductId":685903222463053824},{"formatSpecificProduct":{"name":"OLMETOR H","other":null},"formatSpecificProductId":685903222484025344},{"formatSpecificProduct":{"name":"DILZEM SR $","other":null},"formatSpecificProductId":685903222504996864}]};
+            var mainJS = {
+                suppliers: [{id: null, name: 'None', email: 'None'}, {id: 1, name: 's', email: 's1@s.com'}, {id: 2, name: 's2', email: 's2@s.com'}, 
+                            {id: 3, name: 's3', email: 's3@s.com'}, {id: 4, name: 's4', email: 's4@s.com'}, 
+                            {id: 5, name: 's5', email: 's5@s.com'}, {id: 6, name: 's6', email: 's6@s.com'},
+                            {id: 7, name: 's7', email: 's7@s.com'}, {id: 8, name: 's8', email: 's8@s.com'},
+                            {id: 9, name: 's9', email: 's9@s.com'}, {id: 10, name: 's10', email: 's10@s.com'}, 
+                            {id: 11, name: 's11', email: 's11@s.com'}, {id: 12, name: 's12', email: 's12@s.com'}],
+                ubcList: {"685903222257532900":"KETO SOAP","685903222291087400":"MELACARE CREAM $","685903222320447500":"AQUASOFT CREAM","685903222345613300":"TENORIC 25 MG","685903222370779100":"TENORIC 50 MG","685903222395945000":"WARF 1 MG","685903222421110800":"AEROCORT ROTACAP","685903222442082300":"BETNESOL ORAL DROPS","685903222463053800":"VOVERAN D $","685903222484025300":"OLMETOR H","685903222504996900":"DILZEM SR $"},
+                unmappedList: {},
+                mappedList: {},
+                init: function(responseJson) {
+                    mainJS.suppliers = responseJson['returnSuppliers'];
+                    $.each(mainJS.suppliers, function(key, value){
+                        $('#supplier').append('<option value="'+value['id']+'">'+ value['name']+ '---' + value['id'] +'</option>');
+                    });
+                },
+                showUnmappedMedicines: function(responseJson) {
+                    $('#unmapped-medicines').html('');
+                    $.each(responseJson['unmapped'], function(key, value){
+                        mainJS.unmappedList[value['formatSpecificProductId']] = value['formatSpecificProduct']['name'];
+                        var options = mainJS.getOptions();                     
+                        $('#unmapped-medicines').append('<li><p class="name">'+value['formatSpecificProduct']['name']+'  ------- <select data-id='+value['formatSpecificProductId']+' style="width: 300px;" class="udb-select" name="">'+options+'</select></p>');
+                        $('#unmapped-medicines').append('<br>');
+                    });
+                    var monkeyList = new List('unmapped-list', { 
+                      valueNames: ['name'], 
+                      plugins: [ ListFuzzySearch() ] 
+                    }); 
+                    $('.udb-select').chosen();
+                    $('.udb-select').on('change', function(event, params){
+                        if(params['selected'])
+                            mainJS.mappedList[$(this).attr('data-id')] = params['selected'];
+                        else
+                            delete mainJS.mappedList[$(this).attr('data-id')];                                                   
+                        mainJS.renderSummary();                      
+                    });                
+                },
+                renderSummary: function(){
+                    if(mainJS.mappedList) {
+                        $('#summary').html('');
+                        $.each(mainJS.mappedList, function(key, value){
+                            var html = '<tr><td>'+mainJS.unmappedList[key]+'</td><td>'+mainJS.ubcList[value]+'</td></tr>';
+                            $('#summary').append(html);
+                        });
+                    } else {
+                        console.log('dfadafasdfa');
+                        $('#summary').html('<tr><td>No Data</td></tr>');   
+                    }                        
+                },
+                getOptions: function() {
+                    var output = '<option value="">None</option>';
+                    $.each(mainJS.ubcList, function(key, value){
+                        output+= '<option value='+key+'>'+value+'</option>';
+                    });
+                    return output;
+                },
+                sendAjaxRequest: function(url, data, type, complete) {
+                    $.ajax({
+                        url: url,
+                        type: type,
+                        data: data,
+                        dataType: "JSON",
+                        complete: function(response) {
+                            if(response['status'] == 200) {
+                                complete(JSON.parse(response['responseText']));
+                            } else {
+                                alert('Error Occured');
+                            }
+                        }
+                    }); 
+                }
+            };
+        </script>        
+    </head>
+    <body>
+        <div id="header" style="width: 100%; height: 100%;border: 1px dotted black;">
+            <h3>Application Header</h3>
+        </div>
+        <div id="window" style="width: 100%; height: 100%;border: 1px dotted black;float: left;">
+            <div id="content-left" style="width: 69.7%; height: 100%; border: 1px solid black;float: left;">
+                <h3>Select Supplier</h3>
+                <div style="margin-left: 200px;">
+                    <select id="supplier" class="custom-select" style="width: 200px;">
+                        
+                    </select>
+                </div>
+                <h3>Un Mapped Medicines List</h3>
+                
+                <div id="unmapped-list" style="overflow-y: scroll; height: 300px; border: 2px solid;">                    
+                    <input style="height: 30px; width: 180px; font-size: 20px; display: block; margin: 0 auto;" class="fuzzy-search" type="text" name="search-medicines" placeholder="Search Medicines"/>
+                    <ul id="unmapped-medicines" class="list">
+                        
+                    </ul>    
+                </div>
+            </div>
+            <div id="content-right" style="width: 30%; height: 100%; border: 1px solid black;float: left;">
+                <h3>Summary</h3>
+                <table class="table table-hover" style="margin-bottom: 0px">
+                    <thead>
+                        <tr>
+                            <th>Tablet Name</th>
+                            <th>Universal Name</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summary">
+                        <tr><td>No Data</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div id="footer" style="width: 100%; height: 100%;border: 1px dotted black;">
+            <h3>Application Footer</h3>
+        </div>
+        <script type="text/javascript">
+            $(document).ready(function(){
+                mainJS.sendAjaxRequest('/medAlliance/rest/webportal/getSupplierList', { "username" : "boo", "authKey" : "7e72745b-8dba-48ab-aaed-b2b4314d4ab8" }, 'POST', mainJS.init);
+                $('#supplier').chosen();
+                $('#supplier').on('change', function(event, params){
+                    mainJS.mappedList = {};
+                    mainJS.showUnmappedMedicines(response);
+                    mainJS.renderSummary();
+                    // mainJS.sendAjaxRequest('', {'id': params['selected']}, 'GET', mainJS.showUnmappedMedicines);
+                });
+            });
+        </script>
+    </body>
+</html>

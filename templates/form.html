@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Bootstrap Example</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://1000hz.github.io/bootstrap-validator/dist/validator.min.js"></script>
+  <script src="http://localhost:8080/medAlliance/rest/webportal/application/js"></script>
+  <link rel="stylesheet" href="http://localhost:8080/medAlliance/rest/webportal/application/css" type="text/css" media="screen" title="no title" charset="utf-8"/>
+  <script type="text/javascript"> 
+  </script>
+</head>
+<body>
+
+<div class="container">
+  <h2>Vertical (basic) form</h2>
+  <form role="form"  data-toggle="validator">
+    <div class="form-group">
+      <label for="email" class="control-label">Email:</label>
+      <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+      <div class="help-block with-errors"></div>
+    </div>
+    <div class="form-group">
+      <label for="pwd">Password:</label>
+      <input type="number" class="form-control" id="pwd" placeholder="Enter password" data-odd>
+    </div>
+	<div class="form-group">
+		<label for="fsupplier">Select Supplier:</label>
+		<select id="fsupplier" class="custom-select" style="width: 100%;">
+			<option value="">None</option>
+		</select>
+	</div>
+	<div class="checkbox">
+      <label><input type="checkbox"> Remember me</label>
+    </div>
+    <button type="submit" class="btn btn-default">Submit</button>
+  </form>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	$('#fsupplier').chosen({width: "500px"});
+	$('.chosen-results').css({"font-size": "12px"});
+    $('.chosen-single').css({"font-size": "12px"});
+});
+</script>
+
+</body>
+</html>

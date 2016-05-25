@@ -1,0 +1,86 @@
+
+<!doctype html>
+<html>
+<head>
+<title>Learning CSS</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style type="text/css">
+.class1 {
+/* 	this font size decides the margin of the p tag with which it is used  */
+	font-size: 300%;
+	/*     	font-weight: normal;   -- this  is appearing normally only */
+}
+
+#id1 {
+	font-size: 100%;
+	color: green;
+}
+
+.class2 {
+	text-decoration: underline;
+	font-weight: bold;
+}
+
+.class3 {
+	background-color: blue;
+	width: 500px;
+	height: 100px;
+/* 	position : static;  default */
+/* 	position: relative; static with positioning option z-index has meaning only in this mode*/
+/* 	position : absolute; everything else will ignore this*/ 
+/* 	position : fixed; everything else will ignore this but it is fixed relative to the browser window*/
+/* 	top: -70px; */
+/* 	left: 50px; */
+/* 	z-index: 1;  */
+/* 	margin:50px 100px 30px 10px; */
+/* 	margin: top right  bottom left */
+	/*     float: left; */
+  	padding: 0px; 
+/*   	padding-left: 10px;  
+   	padding-top: 0px;
+   	margin-top: 10px;  */  
+}
+
+.class4 {
+	background-color: #2ECCFA;
+	width: 300px;
+	height: 100px;
+/* 	position:relative; */
+/* 	z-index: 2; */
+/* 	margin-left: 300px; */
+	/*     float: right; */
+}
+
+/* .class5 { */
+/* 	clear: both; */
+/* } */
+
+.class6 {
+	float: left;
+}
+</style>
+</head>
+
+<body>
+	<div class=class3>
+		<p class="class1">This is some text</p>
+	</div>
+
+<!-- 	<div class=class4>
+		<p class="class1" id="id1">This is some more text</p>
+	</div> -->
+	
+<!-- 	<p style="text-align: center;">Orange</p> -->
+
+<!-- 	<div class=class5></div> -->
+
+	<!-- <p>
+		The third word <span class="class1 class2">word</span> is underlined
+	</p> -->
+	<!-- 	 class="class6"  -->
+
+</body>
+</html>

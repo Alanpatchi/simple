@@ -1,0 +1,119 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning jQuery</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<script type="text/javascript" src="jquery-1.4.1.min.js"></script>
+
+<style >
+
+div{
+	height: 200px;
+	width: 200px;
+	float: left;
+	margin: 10px;
+}
+
+.square{
+	border-radius: 0px;
+}
+
+.circle{
+ 	border-radius: 100px;
+}
+
+.red{
+	background-color: red;
+}
+
+.green{
+	background-color: green;
+}
+
+.yellow{
+	background-color: yellow;
+}
+
+#cssModifier{
+	background-color: blue;
+	color: white;
+}
+
+</style>
+
+</head>
+<body>
+
+	<div class="square red"> </div>
+	<div class="square red"> </div>
+	<div class="circle yellow" id="circle"> </div>
+	<div class="green" style="border-radius: 30px;"></div>
+	<div id="cssModifier">CSS Modifier</div>
+	<p style="clear: left;">Here is some content</p>
+	
+	
+
+	<script>
+	
+		/* if(typeof jQuery != "undefined"){
+			
+			alert('jQuery is installed');
+			
+		} else {
+			
+			alert('jQuery is not installed');
+			
+		} */
+		
+		$(".square").click(function(){
+			alert('square clicked');
+		})
+		
+		$("#circle").click(function(){
+			alert('circle clicked');
+		})
+		
+		$(".yellow").hover(function(){
+			alert($("p").html());
+			$("p").html("Content is changed as you hovered yellow");
+		})
+		
+		$(".red").hover(function(){
+			$("p").html("Content is changed as you hovered red");
+			$("#circle").attr("class","circle green");
+		})
+		
+		$(".green").hover(function(){
+			$("p").html("Content is changed as you hovered green");
+			$("#circle").attr("class","circle red");
+		})
+		
+		$("div").click(function(){
+			
+			/* $(this).attr("style","height: 300px;");  -- this works by completely replacing style attribute on the tag*/
+			$(this).css("height", "300px"); // this works by modifying styles in css style sheets
+			
+// 			both the below commands are same 
+/*  		$(this).attr("display","none");
+			$(this).hide(); 
+			$(this).fadeOut(); --fadeOut is a powerful function with lot of modifications
+			*/
+			
+			
+			
+//			division couldnt be operated on '200px' as it should be done on the '200'
+/*			$(this).css("width",$(this).css("width")/2);  
+			$(this).css("height",$(this).css("height")/2);
+			$(this).css("border-radius",$(this).css("border-radius")/2); */
+		})	
+		
+	
+	
+	</script>
+	
+</body>
+</html>

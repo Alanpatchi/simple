@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+<title>Learning jQuery</title>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<script type="text/javascript" src="jquery-1.4.1.min.js"></script>
+
+<style>
+
+</style>
+</head>
+<body>
+	<p> Paragraph of Text</p>
+	<button id="fadOut">fading out button </button>
+	<button id="fadIn">fading in button </button>
+	<script type="text/javascript">
+		
+		$("#fadOut").click(function(){
+			/* $("p").fadeOut();
+			$("p").fadeOut(2000);
+			$("p").fadeOut("fast");
+			$("p").fadeOut("slow"); */
+			$("p").fadeOut("slow", function(){
+				alert('fade out complete');
+			});
+			
+		})
+	
+		$("#fadIn").click(function(){
+			$("p").fadeIn();
+		})
+	</script>
+
+</body>
+</html>
